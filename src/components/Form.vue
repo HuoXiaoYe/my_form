@@ -3,12 +3,17 @@
 		<form action="">
 			<slot></slot>
 		</form>
-		
+
 	</div>
 </template>
 
 <script>
 	export default {
+		provide() {
+			return {
+				myForm: this
+			}
+		},
 		props: {
 			model: {
 				type: Object,

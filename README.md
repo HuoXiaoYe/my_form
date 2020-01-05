@@ -64,7 +64,9 @@
 		},
 		data() {
 			return {
-				name: "霍小叶"
+				info:{
+					name:"霍小叶"
+				}
 			}
 		}
 	};
@@ -215,4 +217,57 @@
 ```
 
 #### 4 进行验证
-> 验证规则rules我们传到了
+> 验证规则rules我们传到了Form.vue组件中，但是真正进行验证的组件是FormItem组件，这时候就涉及到了如子组件之间的传值操作，这里可以使用provide和inject。代码如下：
+
+```javascript
+	// Form.vue
+	provide() {
+		return {
+			myForm: this
+		}
+	}
+	
+	// FormItem.vue接收
+	inject:["myForm"],
+```
+
+> 接下来就是验证方面的工作了，当Input组件进行输入的时候我们调用FormItem组件的方法对输入的信息进行验证
+> element ui的验证使用的是 **async-validator** 库 
+```javascript
+	// Input.vue
+	methods: {
+		onInput(e) {
+			this.$emit('input',e.target.value);
+			this.$parent.$emit('validate')
+		}
+	}
+	// FormItem.vue
+	mounted() {
+		this.$on("validate", this.validator)
+	},
+	methods: {
+		validator() {
+			const rules = this.myForm.rules[this.prop]; // 规则
+			const value = this.myForm.model[this.prop]; // 字段值
+	
+			const descriptor = {
+				[this.prop]: rules
+			};
+			const schema = new Schema(descriptor);
+			schema.validate({
+				[this.prop]: value
+			}, errors => {
+				if (errors) {
+					this.promptMessage = errors[0].message;
+					this.isErr = true;
+				} else {
+					this.promptMessage = '';
+					this.isErr = false;
+				}
+			})
+		}
+	}
+```
+
+
+![效果图](./1.gif)
